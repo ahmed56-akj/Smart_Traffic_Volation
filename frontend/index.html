@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrafficGuard — Violation Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Roboto font import -->
+    <style>@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');</style>
+    <!-- FontAwesome icons (official CDN from https://fontawesome.com) -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css" crossorigin="anonymous" />
+<style>
+
+</style>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa fa-traffic-light"></i></div>
+    <h1>TrafficGuard</h1>
+    <p>v2.0 · VIOLATION MGMT</p>
+  </div>
+  <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="nav-icon"><i class="fa fa-tachometer-alt"></i></span> Dashboard</div>
+  <div class="nav-item" onclick="showPage('record', this)"><span class="nav-icon"><i class="fa fa-plus"></i></span> Record Violation</div>
+  <div class="nav-item" onclick="showPage('violations', this)"><span class="nav-icon"><i class="fa fa-list-alt"></i></span> All Violations <span class="badge" id="total-badge">0</span></div>
+  <div class="nav-item" onclick="showPage('payment', this)"><span class="nav-icon"><i class="fa fa-credit-card"></i></span> Pay Fine</div>
+  <div class="nav-item" onclick="showPage('reports', this)"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Reports</div>
+  <div class="nav-item" onclick="showPage('audit', this)"><span class="nav-icon"><i class="fa fa-search"></i></span> Audit Log</div>
+  <div class="sidebar-footer">
+    <div>SYS STATUS: ONLINE</div>
+    <div id="sidebar-clock"></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="status-pill status-live">● LIVE SYSTEM</div>
+      <div class="clock" id="main-clock">--:--:--</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page active" id="page-dashboard">
+    <div id="dash-alert" class="alert alert-success"><i class="fa fa-check-circle"></i> System initialized. All modules operational.</div>
+    <div class="stats-grid">
+      <div class="stat-card" style="--accent-color: var(--accent);">
+        <div class="stat-label">Total Violations</div>
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-sub">All time records</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--red);">
+        <div class="stat-label">Unpaid Fines</div>
+        <div class="stat-value" id="stat-unpaid" style="color:var(--red)">0</div>
+        <div class="stat-sub">Pending payment</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--green);">
+        <div class="stat-label">Revenue Collected</div>
+        <div class="stat-value" id="stat-revenue" style="color:var(--green)">₨0</div>
+        <div class="stat-sub">Fines paid</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--accent3);">
+        <div class="stat-label">Total Fines Due</div>
+        <div class="stat-value" id="stat-due" style="color:var(--accent3)">₨0</div>
+        <div class="stat-sub">Outstanding amount</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <div class="section-title">Recent Violations</div>
+        <div class="section-sub">Latest 5 records</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showPage('record', document.querySelector('.nav-item:nth-child(3)'))">+ New Violation</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Vehicle</th><th>Violation</th><th>Fine</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody id="recent-table"><tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i class="fa fa-inbox"></i></div>No violations recorded yet</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RECORD VIOLATION PAGE -->
+  <div class="page" id="page-record">
+    <div id="record-alert" class="alert"></div>
+    <div class="form-section">
+      <div class="form-section-title"><i class="fa fa-car"></i> Vehicle Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>License Plate *</label>
+          <input type="text" id="plate" placeholder="e.g. ABC-1234" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Type *</label>
+          <select id="vehicle-type">
+            <option value="">Select vehicle type</option>
+            <option>Car</option>
+            <option>Motorcycle</option>
+            <option>Truck</option>
+            <option>Bus</option>
+            <option>Van</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Owner Name</label>
+          <input type="text" id="owner-name" placeholder="Vehicle owner name">
+        </div>
+        <div class="form-group">
+          <label>Owner Contact</label>
+          <input type="text" id="owner-contact" placeholder="Phone or email">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title"><i class="fa fa-exclamation-triangle"></i> Violation Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Violation Type *</label>
+          <select id="violation-type" onchange="updateFinePreview()">
+            <option value="">Select violation type</option>
+            <option value="speeding_minor" data-fine="2000">Speeding (1-20 km/h over)</option>
+            <option value="speeding_major" data-fine="5000">Speeding (21+ km/h over)</option>
+            <option value="red_light" data-fine="7500">Running Red Light</option>
+            <option value="no_seatbelt" data-fine="1500">No Seatbelt</option>
+            <option value="mobile_use" data-fine="3000">Mobile Phone Use While Driving</option>
+            <option value="wrong_way" data-fine="6000">Wrong Way Driving</option>
+            <option value="illegal_parking" data-fine="1000">Illegal Parking</option>
+            <option value="no_license" data-fine="10000">Driving Without License</option>
+            <option value="drunk_driving" data-fine="25000">Drunk Driving (DUI)</option>
+            <option value="reckless" data-fine="15000">Reckless Driving</option>
+            <option value="overloading" data-fine="8000">Vehicle Overloading</option>
+            <option value="no_helmet" data-fine="1500">No Helmet (Motorcycle)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Severity</label>
+          <select id="severity">
+            <option value="minor">Minor</option>
+            <option value="moderate">Moderate</option>
+            <option value="major">Major</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Location / Zone *</label>
+          <input type="text" id="location" placeholder="e.g. Main St & 5th Ave">
+        </div>
+        <div class="form-group">
+          <label>Officer ID</label>
+          <input type="text" id="officer-id" placeholder="Badge number">
+        </div>
+        <div class="form-group full">
+          <label>Additional Notes</label>
+          <textarea id="notes" rows="2" placeholder="Any additional details about the violation..."></textarea>
+        </div>
+      </div>
+
+      <div class="fine-preview" id="fine-preview" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;"><i class="fa fa-money-bill-wave"></i> Fine Calculation</div>
+        <div class="fine-preview-row"><span>Base Fine</span><span class="mono" id="preview-base">₨0</span></div>
+        <div class="fine-preview-row"><span>Processing Fee (5%)</span><span class="mono" id="preview-fee">₨0</span></div>
+        <hr class="fine-divider">
+        <div class="fine-preview-row"><span style="font-weight:700">Total Fine</span><span class="fine-preview-total" id="preview-total">₨0</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace;">Due within 30 days. Late penalty: 10%/month</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-primary" onclick="recordViolation()"><i class="fa fa-bolt"></i> Record Violation</button>
+      <button class="btn btn-ghost" onclick="clearForm()"><i class="fa fa-times"></i> Clear Form</button>
+    </div>
+  </div>
+
+  <!-- ALL VIOLATIONS PAGE -->
+  <div class="page" id="page-violations">
+    <div class="search-bar">
+      <i class="fa fa-search" style="color:var(--muted);"></i>
+      <input type="text" id="search-input" placeholder="Search by plate, type, location..." oninput="renderViolations()">
+      <select id="filter-status" onchange="renderViolations()" style="max-width:150px">
+        <option value="">All Status</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="paid">Paid</option>
+        <option value="disputed">Disputed</option>
+      </select>
+      <select id="filter-type" onchange="renderViolations()" style="max-width:180px">
+        <option value="">All Types</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Plate</th><th>Owner</th><th>Violation</th><th>Location</th><th>Fine</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="violations-table"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;" id="violations-count"></div>
+  </div>
+
+  <!-- PAYMENT PAGE -->
+  <div class="page" id="page-payment">
+    <div class="form-section" style="max-width:560px">
+      <div class="form-section-title"><i class="fa fa-search"></i> Find Violation</div>
+      <div style="display:flex;gap:10px">
+        <input type="text" id="pay-search" placeholder="Enter Violation ID or License Plate" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-primary" onclick="lookupViolation()">Search</button>
+      </div>
+    </div>
+
+    <div id="pay-result" style="display:none;max-width:560px">
+      <div class="form-section">
+        <div class="form-section-title"><i class="fa fa-file-alt"></i> Violation Details</div>
+        <div class="pay-info" id="pay-details"></div>
+        <div id="pay-already-paid" class="alert alert-success" style="display:none"><i class="fa fa-check-circle"></i> This violation has already been paid.</div>
+        <div id="pay-form">
+          <div class="form-section-title" style="margin-top:16px"><i class="fa fa-credit-card"></i> Payment Method</div>
+          <div class="form-grid" style="margin-bottom:16px">
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="pay-method">
+                <option>Credit Card</option>
+                <option>Debit Card</option>
+                <option>Bank Transfer</option>
+                <option>Cash (Counter)</option>
+                <option>Mobile Wallet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Payer Name</label>
+              <input type="text" id="pay-name" placeholder="Full name">
+            </div>
+            <div class="form-group full">
+              <label>Reference / Notes</label>
+              <input type="text" id="pay-ref" placeholder="Transaction ref or notes">
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="processPayment()"><i class="fa fa-check"></i> Confirm Payment</button>
+        </div>
+      </div>
+    </div>
+    <div id="pay-receipt" style="display:none;max-width:560px">
+      <div class="form-section" style="border-color:var(--green)">
+        <div class="form-section-title" style="color:var(--green)">🎉 Payment Successful!</div>
+        <div id="receipt-content"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:16px" onclick="printReceipt()">🖨 Print Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS PAGE -->
+  <div class="page" id="page-reports">
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card" style="--accent-color: var(--accent);">
+        <div class="stat-label">Collection Rate</div>
+        <div class="stat-value" id="r-collection-rate">0%</div>
+        <div class="stat-sub">Paid vs total</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--orange);">
+        <div class="stat-label">Avg Fine Amount</div>
+        <div class="stat-value" id="r-avg-fine">₨0</div>
+        <div class="stat-sub">Per violation</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--red);">
+        <div class="stat-label">Most Common</div>
+        <div class="stat-value" style="font-size:14px;padding-top:6px" id="r-most-common">—</div>
+        <div class="stat-sub">Violation type</div>
+      </div>
+      <div class="stat-card" style="--accent-color: var(--green);">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value" id="r-revenue" style="color:var(--green)">₨0</div>
+        <div class="stat-sub">Collected fines</div>
+      </div>
+    </div>
+    <div class="report-grid">
+      <div class="report-card">
+        <h3>Violations by Type</h3>
+        <div id="report-by-type"></div>
+      </div>
+      <div class="report-card">
+        <h3>Payment Status Breakdown</h3>
+        <div id="report-by-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT LOG PAGE -->
+  <div class="page" id="page-audit">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Audit Trail</div>
+        <div class="section-sub" id="audit-count">0 events recorded</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearAudit()">🗑 Clear Log</button>
+    </div>
+    <div class="table-wrap">
+      <div id="audit-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL for inline payment from violations table -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Process Payment</div>
+      <button class="close-btn" onclick="closeModal()"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="index.js"></script>
+</body>
+</html>
